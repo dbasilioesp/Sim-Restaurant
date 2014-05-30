@@ -1,36 +1,45 @@
-#include "stdafx.h"
-
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
-int seed = 6733;
-int last_random = seed;
-int first_random;
-const int module = seed;
-const int constantMultiple = 7777;
-const int constantAditive = 8888;
 
+int firstRandom;
+// int seed = 110;
+// int lastRandom = seed;
+// const int module = 2^32;
+// const int constantMultiple = 1664525;
+// const int constantAditive = 1013904223;
+int seed = 3;
+int lastRandom = seed;
+const int module = 64;
+const int constantMultiple = 21;
+const int constantAditive = 1;
 
-int randomLCG(){
-	last_random = (constantMultiple * last_random + constantAditive) % module;
-	return last_random;
+int randomCalc(){
+    lastRandom = (constantMultiple * lastRandom + constantAditive) % module;
+    return lastRandom;
 }
+
+double randomLCG(){
+    int calc = randomCalc();
+    return ((double) calc/(module-1));
+}
+
 
 int main(){
 
-	first_random = randomLCG();
-
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < 100; i++)
 	{
-		cout << randomLCG() << endl;
+		//cout << randomCalc() << endl;
 
-		if(first_random == last_random){
-			cout << "Cicle in " << i << endl;
-			break;
-		}
+		// if(firstRandom == lastRandom){
+		// 	cout << "Cicle in " << i << endl;
+		// 	break;
+		// }
 	}
 
-	system("PAUSE");
+    cout << uniformRandom(7, 10);
+
 	return 0;
 }

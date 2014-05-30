@@ -12,7 +12,8 @@ const int constantMultiple = 7777;
 const int constantAditive = 8888;
 
 
-double randomLCG(){
+double randomLCG()
+{
 	last_random = (constantMultiple * last_random + constantAditive) % module;
 	return last_random/seed;
 }
@@ -36,9 +37,11 @@ double exponencial(int media)
 }
 
 
-double uniformRandom(double init, double final){
+double uniformRandom(double init, double final)
+{
 	return init + (randomLCG() * (final - init));
 }
+
 
 int main(){
 
