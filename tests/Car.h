@@ -1,10 +1,10 @@
 #pragma once
-class Carro
+class Car
 {
 	int id;
 public:
-	Carro(int i);
-	~Carro();
+	Car(int i);
+	~Car();
 	int getId();
 };
 

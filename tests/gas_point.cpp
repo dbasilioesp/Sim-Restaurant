@@ -1,7 +1,3 @@
-#include "stdafx.h"
-
-// testeThreadsC11.cpp : Defines the entry point for the console application.
-
 #include <thread>
 #include <iostream>
 #include <vector>

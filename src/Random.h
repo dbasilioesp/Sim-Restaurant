@@ -1,8 +1,7 @@
 #pragma once
-
-#include "stdafx.h"
 #include <iostream>
 #include <cmath>
+#include <mutex>
 
 using namespace std;
 
@@ -17,6 +16,7 @@ class Random {
 	int constantMultiple;
 	int constantAditive;
 	int number;
+	mutex randomMutex;
 
 	public:
 
@@ -26,13 +26,12 @@ class Random {
 		module = 64;
 		constantMultiple = 21;
 		constantAditive = 1;
-		// module = 2^32;
-		// constantMultiple = 1664525;
-		// constantAditive = 1013904223;
 	}
 
 	int randomCalc(){
-		lastRandom = (constantMultiple * lastRandom + constantAditive) % module;
+		randomMutex.lock();
+			lastRandom = (constantMultiple * lastRandom + constantAditive) % module;
+		randomMutex.unlock();
 		return lastRandom;
 	}
 
@@ -41,7 +40,7 @@ class Random {
 		return ((double) calc/(module-1));
 	}
 
-	int uniformRandom(int init, int final){
+	int uniform(int init, int final){
 		number = init + (randomLCG() * (final - init));
 		return number;
 	}
@@ -51,7 +50,7 @@ class Random {
 		return number;
 	}
 
-	int normal(int media, int dp){
+	unsigned int normal(int media, int dp){
 		double u1, u2, v1, v2, w, y, x1;
 		u1 = randomLCG();
 		u2 = randomLCG();

@@ -1,7 +1,7 @@
-#include "stdafx.h"
 #include <exception>
 #include <iostream>
 #include <mutex>
+
 #include "Fila.h"
 
 
@@ -18,12 +18,13 @@ void Fila::insert(Carro *c){
 Carro* Fila::getFirst(){
 	Carro *c = NULL;
 	
-       queueMutex.lock();
-	   if (!fila.empty()){
-			c = fila.front();
-			fila.pop();
-	   }	
-       queueMutex.unlock();
+    queueMutex.lock();
+	if (!fila.empty()){
+		c = fila.front();
+		fila.pop();
+	}	
+    queueMutex.unlock();
+	
 	return c;
 }
 

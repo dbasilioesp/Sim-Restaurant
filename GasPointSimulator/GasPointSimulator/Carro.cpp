@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include "Carro.h"
 #include <iostream>
+
 using namespace std;
 
 Carro::Carro(int placa)
@@ -11,6 +11,7 @@ Carro::Carro(int placa)
 Carro::Carro()
 {
 }
+
 Carro::~Carro()
 {
 	std::cout << "destruct " << this->placa << std::endl;
