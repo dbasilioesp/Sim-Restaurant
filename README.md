@@ -3,7 +3,7 @@ Sim Restaurant
 
 This is a project to simulate a restaurant using threads and random variates.
 
-Professor: Ernesto Lindstaedt
+Professor: Ernesto Lindstaedt  
 Deadline: 21/05/2014
 
 ### Description
