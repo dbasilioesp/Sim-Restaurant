@@ -22,6 +22,9 @@ int cozinheirosOcupados = 0;
 int totalClients = 0;
 int totalExited = 0;
 int counter = 0;
+int maxMesas = 4;
+int maxBalcoes = 3;
+int maxCozinheiros = 3;
 
 long getClock(){
 	return duration_cast<seconds>(system_clock::now() - initialTime).count();
@@ -79,6 +82,51 @@ void dashboard(int endTime, ClientQueue *cq1, ClientQueue *cq2, ClientQueue *bal
 			cout << "|";
 		cout << endl;
 
+		cout << endl;
+		cout << "Max Mesas: " << maxMesas << endl;
+		cout << "Max Balcoes: " << maxBalcoes << endl;
+		cout << "Max Cozinheiros: " << maxCozinheiros << endl;
+
+
+		cout << endl << "Commands" << endl;
+		cout << "--------------" << endl;
+		cout << "Mesas++: 1" << endl;
+		cout << "Menos--: 2" << endl;
+		cout << "Balcoes++: 3" << endl;
+		cout << "Balcoes--: 4" << endl;
+		cout << "Cozinheiros++: 5" << endl;
+		cout << "Cozinheiros--: 6" << endl;
+
+		cout << endl << "Command: ";
+		cin >> letter;
+
+		switch (letter)
+		{
+		case '1':
+			maxMesas++;
+			break;
+		case '2':
+			if(maxMesas > 1)
+				maxMesas--;
+			break;
+		case '3':
+			maxBalcoes++;
+			break;
+		case '4':
+			if(maxBalcoes > 1)
+				maxBalcoes--;
+			break;
+		case '5':
+			maxCozinheiros++;
+			break;
+		case '6':
+			if(maxCozinheiros > 1)
+				maxCozinheiros--;
+			break;
+		default:
+			break;
+		}
+
 		this_thread::sleep_for(seconds(1)); 
 	}
 
@@ -94,17 +142,18 @@ void prapareFood(int waitTime, int * placesFilled, Client *client){
 }
 
 
-void kitchen(int endTime, int maxPlaces, int * placesFilled, ClientQueue *clientQueue){
+void kitchen(int endTime, int * maxPlaces, int * placesFilled, ClientQueue *clientQueue){
+	
 	int waitTime;
 	Random randomWait(250);
 	Client* client = NULL;
 
 	while (getClock() < endTime){
         
-		if (clientQueue->isEmpty() == false && *placesFilled < maxPlaces){
+		if (clientQueue->isEmpty() == false && *placesFilled < *maxPlaces){
 			
 			mu.lock();
-				if(*placesFilled < maxPlaces){
+				if(*placesFilled < *maxPlaces){
 					client = clientQueue->getFirst();
 				}
 			mu.unlock();
@@ -142,7 +191,7 @@ void waitToBeServed(int waitTime, int * placesFilled, Client *client){
 }
 
 
-void receiveClientInPlaces(int endTime, int maxPlaces, int * placesFilled, ClientQueue *clientQueue){
+void receiveClientInPlaces(int endTime, int * maxPlaces, int * placesFilled, ClientQueue *clientQueue){
 
 	int waitTime;
 	Random randomWait(50);
@@ -151,10 +200,10 @@ void receiveClientInPlaces(int endTime, int maxPlaces, int * placesFilled, Clien
 	
 	while (getClock() < endTime){
         
-		if (clientQueue->isEmpty() == false && *placesFilled < maxPlaces){
+		if (clientQueue->isEmpty() == false && *placesFilled < *maxPlaces){
 			
 			mu.lock();
-				if(*placesFilled < maxPlaces){
+				if(*placesFilled < *maxPlaces){
 					client = clientQueue->getFirst();
 				}
 			mu.unlock();
@@ -251,11 +300,14 @@ int main()
 	initialTime = chrono::system_clock::now();
 	
 	thread t1(produceClients, 30, &cq1, &cq2);
+
 	thread t2(receiveClientQueue, finishTime, &cq1, &balcao, &mesas);
 	thread t3(receiveClientQueue, finishTime, &cq2, &balcao, &mesas);
-	thread t4(receiveClientInPlaces, finishTime, 3, &mesasOcupadas, &mesas);
-	thread t5(receiveClientInPlaces, finishTime, 4, &balcaoOcupado, &balcao);
-	thread t6(kitchen, finishTime, 3, &cozinheirosOcupados, &cozinha);
+
+	thread t4(receiveClientInPlaces, finishTime, &maxMesas, &mesasOcupadas, &mesas);
+	thread t5(receiveClientInPlaces, finishTime, &maxBalcoes, &balcaoOcupado, &balcao);
+	thread t6(kitchen, finishTime, &maxCozinheiros, &cozinheirosOcupados, &cozinha);
+
 	thread t99(dashboard, finishTime, &cq1, &cq2, &balcao, &mesas);
 	
 	t1.join();
@@ -274,4 +326,3 @@ int main()
 	system("PAUSE");
 	return 0;
 }
-
