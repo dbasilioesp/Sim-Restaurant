@@ -13,24 +13,95 @@
 using namespace std;
 using namespace chrono;
 
+
+struct ThreadParameters {
+	int tablesFilled;
+	int balconyFilled;
+	int chefsWorking;
+	int totalClients;
+	int totalExited;
+	int counter;
+	int maxTables;
+	int maxBalconies;
+	int maxChefs;
+	int money;
+};
+
+
+struct ClientsController {
+	ClientQueue cq1;
+	ClientQueue cq2;
+	ClientQueue balconies;
+	ClientQueue tables;
+	ClientQueue kitchen;
+};
+
 mutex mu;
 time_point<system_clock, system_clock::duration> initialTime;
-ClientQueue cozinha;
-int mesasOcupadas = 0;
-int balcaoOcupado = 0;
-int cozinheirosOcupados = 0;
-int totalClients = 0;
-int totalExited = 0;
-int counter = 0;
-int maxMesas = 4;
-int maxBalcoes = 3;
-int maxCozinheiros = 3;
+
 
 long getClock(){
 	return duration_cast<seconds>(system_clock::now() - initialTime).count();
 }
 
-void dashboard(int endTime, ClientQueue *cq1, ClientQueue *cq2, ClientQueue *balcao, ClientQueue *mesas){
+
+void store(ThreadParameters * parameters){
+
+	int money = parameters->money;
+	char option;
+	while (true)
+	{
+		system("cls");
+		cout << "Sim Restaurant" << endl;
+		cout << "--------------" << endl;
+		
+		cout << "Money: " << money << "\t" << "Tables: " << parameters->maxTables << "\t" << "Balconies: " << parameters->maxBalconies;
+		cout << "\t" << "Chefs: " << parameters->maxChefs << endl;
+
+		cout << endl << "1 - More Tables (100)" << endl;
+		cout << "2 - More Balconies (50)" << endl;
+		cout << "3 - More Chefs (150)" << endl;
+		cout << "4 - Start Game" << endl;
+
+		cout << endl << "Option: ";
+		cin >> option;
+
+		if(option == '1'){
+			if(money - 100 < 0){
+				cout << "Not enough cash!" << endl;
+				system("pause");
+			} else {
+				money -= 100;
+				parameters->maxTables += 1;
+			}
+		} else if(option == '2'){
+			if(money - 50 < 0){
+				cout << "Not enough cash!" << endl;
+				system("pause");
+			} else {
+				money -= 50;
+				parameters->maxBalconies += 1;
+			}
+		} else if(option == '3'){
+			if(money - 150 < 0){
+				cout << "Not enough cash!" << endl;
+				system("pause");
+			} else {
+				money -= 150;
+				parameters->maxChefs += 1;
+			}
+		}
+
+		if(option == '4')
+			break;
+	}
+	
+	parameters->money = money;
+
+}
+
+
+void dashboard(int endTime, ThreadParameters* tp, ClientsController* controller){
 
 	char letter;
 	long interval;
@@ -40,92 +111,51 @@ void dashboard(int endTime, ClientQueue *cq1, ClientQueue *cq2, ClientQueue *bal
 
 		cout << "Sim Restaurant" << endl;
 		cout << "--------------" << endl;
+
+		cout << "Money: " << tp->money << "\t" << "Tables: " << tp->maxTables << "\t" << "Balconies: " << tp->maxBalconies;
+		cout << "\t" << "Chefs: " << tp->maxChefs << endl;
+
 		cout << "Time: " << getClock() << endl << endl;
 		
-		cout << "Fila Caixa 1: ";
-		for (int i = 0; i < cq1->size(); i++)
+		cout << "Box 1: ";
+		for (int i = 0; i < controller->cq1.size(); i++)
 			cout << "|";
 		cout << endl;
 
-		cout << "Fila Caixa 2: ";
-		for (int i = 0; i < cq2->size(); i++)
+		cout << "Box 2: ";
+		for (int i = 0; i < controller->cq2.size(); i++)
 			cout << "|";
 		cout << endl;
 
-		cout << "Fila Balcao: ";
-		for (int i = 0; i < balcao->size(); i++)
+		cout << "Fila Balconies: ";
+		for (int i = 0; i < controller->balconies.size(); i++)
 			cout << "|";
 		cout << endl;
 
-		cout << "Fila Mesas: ";
-		for (int i = 0; i < mesas->size(); i++)
+		cout << "Fila Tables: ";
+		for (int i = 0; i < controller->tables.size(); i++)
 			cout << "|";
 		cout << endl;
 
-		cout << "Fila Cozinha: ";
-		for (int i = 0; i < cozinha.size(); i++)
+		cout << "Fila Kitchen: ";
+		for (int i = 0; i < controller->kitchen.size(); i++)
 			cout << "|";
 		cout << endl << endl;
 		
-		cout << "Balcao: ";
-		for (int i = 0; i < balcaoOcupado; i++)
+		cout << "Balconies: ";
+		for (int i = 0; i < tp->balconyFilled; i++)
 			cout << "|";
 		cout << endl;
 
-		cout << "Mesas: ";
-		for (int i = 0; i < mesasOcupadas; i++)
+		cout << "Tables: ";
+		for (int i = 0; i < tp->tablesFilled; i++)
 			cout << "|";
 		cout << endl;
 
-		cout << "Cozinha: ";
-		for (int i = 0; i < cozinheirosOcupados; i++)
+		cout << "Kitchen: ";
+		for (int i = 0; i < tp->chefsWorking; i++)
 			cout << "|";
 		cout << endl;
-
-		cout << endl;
-		cout << "Max Mesas: " << maxMesas << endl;
-		cout << "Max Balcoes: " << maxBalcoes << endl;
-		cout << "Max Cozinheiros: " << maxCozinheiros << endl;
-
-
-		cout << endl << "Commands" << endl;
-		cout << "--------------" << endl;
-		cout << "Mesas++: 1" << endl;
-		cout << "Menos--: 2" << endl;
-		cout << "Balcoes++: 3" << endl;
-		cout << "Balcoes--: 4" << endl;
-		cout << "Cozinheiros++: 5" << endl;
-		cout << "Cozinheiros--: 6" << endl;
-
-		cout << endl << "Command: ";
-		cin >> letter;
-
-		switch (letter)
-		{
-		case '1':
-			maxMesas++;
-			break;
-		case '2':
-			if(maxMesas > 1)
-				maxMesas--;
-			break;
-		case '3':
-			maxBalcoes++;
-			break;
-		case '4':
-			if(maxBalcoes > 1)
-				maxBalcoes--;
-			break;
-		case '5':
-			maxCozinheiros++;
-			break;
-		case '6':
-			if(maxCozinheiros > 1)
-				maxCozinheiros--;
-			break;
-		default:
-			break;
-		}
 
 		this_thread::sleep_for(seconds(1)); 
 	}
@@ -142,7 +172,7 @@ void prapareFood(int waitTime, int * placesFilled, Client *client){
 }
 
 
-void kitchen(int endTime, int * maxPlaces, int * placesFilled, ClientQueue *clientQueue){
+void receiveFoodRequest(int endTime, int * maxPlaces, int * placesFilled, ClientQueue *clientQueue){
 	
 	int waitTime;
 	Random randomWait(250);
@@ -176,7 +206,7 @@ void kitchen(int endTime, int * maxPlaces, int * placesFilled, ClientQueue *clie
 }
 
 
-void waitToBeServed(int waitTime, int * placesFilled, Client *client){
+void waitToBeServed(int waitTime, ThreadParameters* tp, int * placesFilled, Client *client){
 
 	while (!client->isServed())
 	{
@@ -186,12 +216,12 @@ void waitToBeServed(int waitTime, int * placesFilled, Client *client){
 	this_thread::sleep_for(seconds(waitTime));
 	mu.lock();
 		*placesFilled -= 1;
-		totalExited++;
+		tp->totalExited++;
 	mu.unlock();
 }
 
 
-void receiveClientInPlaces(int endTime, int * maxPlaces, int * placesFilled, ClientQueue *clientQueue){
+void receiveClientInPlaces(int endTime, ThreadParameters* tp, int * maxPlaces, int * placesFilled, ClientQueue *clientQueue){
 
 	int waitTime;
 	Random randomWait(50);
@@ -214,7 +244,7 @@ void receiveClientInPlaces(int endTime, int * maxPlaces, int * placesFilled, Cli
 				mu.unlock();
 
 				waitTime = randomWait.normal(20, 8);
-				async(launch::async, &waitToBeServed, waitTime, placesFilled, client);
+				async(launch::async, &waitToBeServed, waitTime, tp, placesFilled, client);
 
 				client = NULL;
 			}
@@ -226,7 +256,7 @@ void receiveClientInPlaces(int endTime, int * maxPlaces, int * placesFilled, Cli
 }
 
 
-void receiveClientQueue(int endTime, ClientQueue *clientQueue, ClientQueue *balcao, ClientQueue *mesas){
+void receiveClientQueue(int endTime, ClientQueue *cq, ClientQueue *balcony, ClientQueue *tables, ClientQueue *kitchen){
 
 	int waitTime;
 	Random randomWait(50);
@@ -234,21 +264,21 @@ void receiveClientQueue(int endTime, ClientQueue *clientQueue, ClientQueue *balc
 	
 	while (getClock() < endTime){   
         
-		if (clientQueue->isEmpty() == false){
+		if (cq->isEmpty() == false){
 					
-			client = clientQueue->getFirst();
+			client = cq->getFirst();
 			
 			if (client != NULL){
 				waitTime = randomWait.normal(8, 2);
 				this_thread::sleep_for(seconds(waitTime));
 
-				if(client->getGroup() == 1){
-					balcao->insert(client);
-				} else {
-					mesas->insert(client);
-				}
+				kitchen->insert(client);
 
-				cozinha.insert(client);
+				if(client->getGroup() == 1){
+					balcony->insert(client);
+				} else {
+					tables->insert(client);
+				}
 				
 				client = NULL;
 			}
@@ -259,7 +289,7 @@ void receiveClientQueue(int endTime, ClientQueue *clientQueue, ClientQueue *balc
 }
 
 
-void produceClients(int endTime, ClientQueue *cq1, ClientQueue *cq2){
+void produceClients(int endTime, ThreadParameters* tp, ClientQueue *cq1, ClientQueue *cq2){
 	
 	int waitTime;
 	Random randomWait(55);
@@ -273,19 +303,19 @@ void produceClients(int endTime, ClientQueue *cq1, ClientQueue *cq2){
 		int clientSize = randomClient.uniform(1, 4);
 		
 		mu.lock();
-			counter++;
-			Client * client = new Client(counter);
+			tp->counter++;
+			Client * client = new Client(tp->counter);
 		mu.unlock();
 		
 		client->setGroup(clientSize);
 
 		mu.lock();
-			if(cq1->size() < cq2->size()){
-				cq1->insert(client);
-			} else {
+			if(cq2->size() < cq1->size()){
 				cq2->insert(client);
+			} else {
+				cq1->insert(client);
 			}
-			totalClients++;
+			tp->totalClients++;
 		mu.unlock();
 
 	}
@@ -295,20 +325,36 @@ void produceClients(int endTime, ClientQueue *cq1, ClientQueue *cq2){
 
 int main()
 {
-	int finishTime = 60;
-	ClientQueue cq1, cq2, balcao, mesas;
+	ThreadParameters parameters;
+	parameters.tablesFilled = 0;
+	parameters.balconyFilled = 0;
+	parameters.chefsWorking = 0;
+	parameters.totalClients = 0;
+	parameters.totalExited = 0;
+	parameters.counter = 0;
+	parameters.maxTables = 1;
+	parameters.maxBalconies = 1;
+	parameters.maxChefs = 1;
+	parameters.money = 800;
+	
+	store(&parameters);
+
+	int endTime = 60;
+	
+	ClientsController controller;
+
 	initialTime = chrono::system_clock::now();
 	
-	thread t1(produceClients, 30, &cq1, &cq2);
+	thread t1(produceClients, 30, &parameters, &controller.cq1, &controller.cq2);
 
-	thread t2(receiveClientQueue, finishTime, &cq1, &balcao, &mesas);
-	thread t3(receiveClientQueue, finishTime, &cq2, &balcao, &mesas);
+	thread t2(receiveClientQueue, endTime, &controller.cq1, &controller.balconies, &controller.tables, &controller.kitchen);
+	thread t3(receiveClientQueue, endTime, &controller.cq2, &controller.balconies, &controller.tables, &controller.kitchen);
 
-	thread t4(receiveClientInPlaces, finishTime, &maxMesas, &mesasOcupadas, &mesas);
-	thread t5(receiveClientInPlaces, finishTime, &maxBalcoes, &balcaoOcupado, &balcao);
-	thread t6(kitchen, finishTime, &maxCozinheiros, &cozinheirosOcupados, &cozinha);
+	thread t4(receiveClientInPlaces, endTime, &parameters, &parameters.maxTables, &parameters.tablesFilled, &controller.tables);
+	thread t5(receiveClientInPlaces, endTime, &parameters, &parameters.maxBalconies, &parameters.balconyFilled, &controller.balconies);
+	thread t6(receiveFoodRequest, endTime, &parameters.maxChefs, &parameters.chefsWorking, &controller.kitchen);
 
-	thread t99(dashboard, finishTime, &cq1, &cq2, &balcao, &mesas);
+	thread t99(dashboard, endTime, &parameters, &controller);
 	
 	t1.join();
 	t2.join();
@@ -319,8 +365,8 @@ int main()
 	t99.join();
 
 	cout << endl << "Time: " << getClock() << " seconds" << endl;
-	cout << "Total Clients: " << totalClients << endl;
-	cout << "Total Exited: " << totalExited << endl;
+	cout << "Total Clients: " << parameters.totalClients << endl;
+	cout << "Total Exited: " << parameters.totalExited << endl;
 	cout << "Finishing... " << endl;
 
 	system("PAUSE");
